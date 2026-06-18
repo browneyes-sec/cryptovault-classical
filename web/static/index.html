@@ -16,6 +16,7 @@
         <button class="nav-tab active" data-tab="cipher" aria-selected="true" role="tab">Cipher</button>
         <button class="nav-tab" data-tab="analysis" aria-selected="false" role="tab">Analysis</button>
         <button class="nav-tab" data-tab="labs" aria-selected="false" role="tab">Labs</button>
+        <button class="nav-tab" data-tab="island" aria-selected="false" role="tab">Island</button>
         <button class="nav-tab" data-tab="refs" aria-selected="false" role="tab">References</button>
     </nav>
 
@@ -110,6 +111,10 @@
             </div>
             <div class="panel-body" id="refs-container"></div>
         </section>
+
+        <section id="island-section" class="tab-panel" role="tabpanel" aria-label="Crypto Island Game" hidden>
+            <div id="island-container"></div>
+        </section>
     </main>
 
     <footer>
@@ -121,5 +126,6 @@
     <script src="/js/analysis.js"></script>
     <script src="/js/labs.js"></script>
     <script src="/js/refs.js"></script>
+    <script type="module" src="/game/app.js"></script>
 </body>
 </html>

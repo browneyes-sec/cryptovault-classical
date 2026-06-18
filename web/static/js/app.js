@@ -50,6 +50,17 @@ function initNav() {
 }
 
 const router = new Router();
+let islandInitialized = false;
+
+router.register('island', async () => {
+  if (!islandInitialized) {
+    islandInitialized = true;
+    const { initIsland } = await import('/game/app.js');
+    const container = document.getElementById('island-container');
+    if (container) initIsland(container);
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     initNav();
     router.route();
