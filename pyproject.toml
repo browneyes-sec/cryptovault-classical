@@ -4,15 +4,15 @@ build-backend = "setuptools.backends._legacy:_Backend"
 
 [project]
 name = "cryptovault-classical"
-version = "0.1.0"
-description = "Python refactoring of classical encryption & cryptanalysis algorithms — Caesar, Vigenère, Vernam, Transposition, Binary/Bit methods — with security assessment layer."
+version = "0.2.0"
+description = "Full classical cipher suite with cryptanalysis, key management, and communication protocols — educational cryptographic toolkit."
 readme = "README.md"
 license = {text = "GPL-3.0"}
 requires-python = ">=3.10"
 authors = [
     {name = "browneyes-sec"},
 ]
-keywords = ["cryptography", "classical-ciphers", "caesar", "vigenere", "vernam", "transposition", "cryptanalysis"]
+keywords = ["cryptography", "classical-ciphers", "caesar", "vigenere", "vernam", "transposition", "cryptanalysis", "playfair", "hill", "affine", "key-management", "diffie-hellman"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Education",
