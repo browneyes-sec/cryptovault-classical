@@ -109,4 +109,6 @@ async def health_check() -> HealthResponse:
     )
 
 
-app.mount("/", StaticFiles(directory="web/static", html=True), name="static")
+import os
+_static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "web", "static")
+app.mount("/", StaticFiles(directory=_static_dir, html=True), name="static")
