@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoVault Classical</title>
+    <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+    <header>
+        <h1>CryptoVault Classical</h1>
+        <p class="subtitle">An Interactive Classical Cryptography Learning Platform</p>
+    </header>
+
+    <nav aria-label="Main navigation">
+        <button class="nav-tab active" data-tab="cipher" aria-selected="true" role="tab">Cipher</button>
+        <button class="nav-tab" data-tab="analysis" aria-selected="false" role="tab">Analysis</button>
+        <button class="nav-tab" data-tab="labs" aria-selected="false" role="tab">Labs</button>
+        <button class="nav-tab" data-tab="refs" aria-selected="false" role="tab">References</button>
+    </nav>
+
+    <main>
+        <section id="cipher-section" class="tab-panel active" role="tabpanel" aria-label="Cipher Operations">
+            <div class="panel-header">
+                <h2>Cipher Operations</h2>
+                <p>Encrypt or decrypt text using any of 19 classical ciphers.</p>
+            </div>
+            <div class="panel-body">
+                <div class="form-row">
+                    <label for="cipher-select">Cipher</label>
+                    <select id="cipher-select" aria-describedby="cipher-help">
+                        <option value="">Select a cipher...</option>
+                    </select>
+                    <small id="cipher-help" class="help-text"></small>
+                </div>
+                <div class="form-row">
+                    <label for="cipher-key">Key</label>
+                    <input type="text" id="cipher-key" placeholder="Enter cipher key" aria-describedby="key-help">
+                    <small id="key-help" class="help-text" id="key-format"></small>
+                </div>
+                <div class="form-row">
+                    <label for="cipher-action">Action</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="cipher-action" value="encrypt" checked> Encrypt
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="cipher-action" value="decrypt"> Decrypt
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row" id="plaintext-row">
+                    <label for="cipher-plaintext">Plaintext</label>
+                    <textarea id="cipher-plaintext" rows="4" placeholder="Enter plaintext to encrypt"></textarea>
+                </div>
+                <div class="form-row hidden" id="ciphertext-row">
+                    <label for="cipher-ciphertext">Ciphertext</label>
+                    <textarea id="cipher-ciphertext" rows="4" placeholder="Enter ciphertext to decrypt"></textarea>
+                </div>
+                <div class="form-row">
+                    <button id="cipher-submit" class="btn-primary" type="button">Process</button>
+                </div>
+                <div id="cipher-result" class="result-area hidden" aria-live="polite">
+                    <h3>Result</h3>
+                    <div id="cipher-result-text" class="mono-block"></div>
+                    <h4>Steps</h4>
+                    <ol id="cipher-steps" class="steps-list"></ol>
+                </div>
+            </div>
+        </section>
+
+        <section id="analysis-section" class="tab-panel" role="tabpanel" aria-label="Cryptanalysis" hidden>
+            <div class="panel-header">
+                <h2>Cryptanalysis Tools</h2>
+                <p>Analyze ciphertext using frequency analysis, IoC, Kasiski examination, or brute-force attacks.</p>
+            </div>
+            <div class="panel-body">
+                <div class="form-row">
+                    <label for="analysis-text">Ciphertext</label>
+                    <textarea id="analysis-text" rows="4" placeholder="Enter ciphertext to analyze"></textarea>
+                </div>
+                <div class="form-row">
+                    <label for="analysis-method">Analysis Method</label>
+                    <select id="analysis-method">
+                        <option value="frequency">Frequency Analysis</option>
+                        <option value="index-of-coincidence">Index of Coincidence</option>
+                        <option value="kasiski">Kasiski Examination</option>
+                        <option value="brute-force">Brute Force (Caesar)</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <button id="analysis-submit" class="btn-primary" type="button">Analyze</button>
+                </div>
+                <div id="analysis-result" class="result-area hidden" aria-live="polite"></div>
+            </div>
+        </section>
+
+        <section id="labs-section" class="tab-panel" role="tabpanel" aria-label="Learning Labs" hidden>
+            <div class="panel-header">
+                <h2>Learning Labs</h2>
+                <p>Hands-on exercises from beginner to doctoral level.</p>
+            </div>
+            <div class="panel-body" id="labs-container"></div>
+        </section>
+
+        <section id="refs-section" class="tab-panel" role="tabpanel" aria-label="References" hidden>
+            <div class="panel-header">
+                <h2>Reference Library</h2>
+                <p>24 curated references on classical cryptography.</p>
+            </div>
+            <div class="panel-body" id="refs-container"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>CryptoVault Classical v0.2.0 &mdash; GPL-3.0 License</p>
+    </footer>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/cipher.js"></script>
+    <script src="/js/analysis.js"></script>
+    <script src="/js/labs.js"></script>
+    <script src="/js/refs.js"></script>
+</body>
+</html>
