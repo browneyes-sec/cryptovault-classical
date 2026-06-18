@@ -437,27 +437,50 @@ nav { display: flex; gap: 0; margin-bottom: var(--space-xl); border-bottom: 1px 
     cursor: pointer;
     text-align: left;
     font-family: 'Courier New', monospace;
+    transition: background 0.15s, border-color 0.15s;
 }
 
 .word-item:hover { background: #f5f5f5; }
 
+.word-item.decoded {
+    background: #fff8e1;
+    border-color: #ffb300;
+}
+
 .word-item.found {
     background: #e8f5e9;
     border-color: var(--color-success);
+    cursor: default;
 }
 
-.word-text {
+.word-ciphertext {
     font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--color-accent);
+    letter-spacing: 0.05em;
+}
+
+.word-plain {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--color-success);
 }
 
 .word-cipher {
     margin-left: auto;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
     color: var(--color-muted);
     background: var(--color-code-bg);
     padding: 1px 6px;
     border-radius: 2px;
+}
+
+.word-status {
+    font-size: 0.7rem;
+    color: var(--color-muted);
+    min-width: 1.5rem;
+    text-align: right;
 }
 
 /* Hint Modal */
@@ -486,27 +509,56 @@ nav { display: flex; gap: 0; margin-bottom: var(--space-xl); border-bottom: 1px 
     margin-bottom: var(--space-md);
 }
 
+.hint-cipher-display {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.hint-cipher-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    min-width: 5rem;
+}
+
 .hint-ciphertext {
     font-family: 'Courier New', monospace;
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--color-accent);
     letter-spacing: 0.1em;
-    padding: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
     background: var(--color-code-bg);
     border-radius: var(--radius);
-    margin-bottom: var(--space-sm);
+    flex: 1;
+    text-align: center;
 }
 
-.hint-key {
-    font-size: 0.85rem;
+.btn-copy {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-copy:hover { background: #f5f5f5; }
+
+.hint-cipher-info {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-lg);
+    font-size: 0.8rem;
     color: var(--color-muted);
-    margin-bottom: var(--space-sm);
+    margin-bottom: var(--space-md);
 }
 
 .hint-clue {
     font-size: 0.9rem;
-    font-style: italic;
     color: var(--color-secondary);
     margin-bottom: var(--space-md);
 }
@@ -548,11 +600,16 @@ nav { display: flex; gap: 0; margin-bottom: var(--space-xl); border-bottom: 1px 
 
 .btn-secondary:hover { background: #f5f5f5; }
 
-.hint-error {
+.hint-feedback {
     margin-top: var(--space-sm);
-    color: var(--color-error);
     font-size: 0.9rem;
 }
+
+.hint-error-msg {
+    color: var(--color-error);
+}
+
+.hidden { display: none !important; }
 
 /* Responsive Island */
 @media (max-width: 640px) {

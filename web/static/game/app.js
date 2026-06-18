@@ -11,14 +11,15 @@ const state = {
   currentPuzzle: null,
   selectedCells: [],
   isDragging: false,
+  decodedWords: new Set(), // tracks which words have been decoded
 };
 
 export function initIsland(container) {
   state.currentStage = null;
   state.currentPuzzle = null;
+  state.decodedWords.clear();
   container.innerHTML = '';
 
-  // Island header
   const header = document.createElement('div');
   header.className = 'island-header';
   header.innerHTML = `
@@ -28,13 +29,11 @@ export function initIsland(container) {
   `;
   container.appendChild(header);
 
-  // Island map (CSS-generated)
   const map = document.createElement('div');
   map.className = 'island-map';
   map.innerHTML = `<div class="island-terrain"></div>`;
   container.appendChild(map);
 
-  // Hotspots
   const hotspots = document.createElement('div');
   hotspots.className = 'island-hotspots';
 
@@ -67,6 +66,7 @@ function startStage(stage, container) {
   state.currentStage = stage;
   state.currentPuzzle = createPuzzle(stage);
   state.selectedCells = [];
+  state.decodedWords.clear();
   renderPuzzle(container);
 }
 
@@ -75,7 +75,7 @@ function renderPuzzle(container) {
   const puzzle = state.currentPuzzle;
   container.innerHTML = '';
 
-  // Puzzle header
+  // Header
   const header = document.createElement('div');
   header.className = 'puzzle-header';
   header.innerHTML = `
@@ -86,13 +86,13 @@ function renderPuzzle(container) {
   header.querySelector('.btn-back').addEventListener('click', () => initIsland(container));
   container.appendChild(header);
 
-  // Puzzle description
+  // Description
   const desc = document.createElement('p');
   desc.className = 'puzzle-description';
   desc.textContent = stage.description;
   container.appendChild(desc);
 
-  // Main layout
+  // Layout
   const layout = document.createElement('div');
   layout.className = 'puzzle-layout';
 
@@ -119,9 +119,7 @@ function renderPuzzle(container) {
       cell.addEventListener('mouseenter', () => {
         if (state.isDragging) {
           const last = state.selectedCells[state.selectedCells.length - 1];
-          // Only add adjacent cells
           if (Math.abs(r - last.r) <= 1 && Math.abs(c - last.c) <= 1 && (r !== last.r || c !== last.c)) {
-            // Check if already selected (avoid duplicates)
             if (!state.selectedCells.some(s => s.r === r && s.c === c)) {
               state.selectedCells.push({ r, c });
               highlightCells();
@@ -159,31 +157,62 @@ function renderPuzzle(container) {
   }
   layout.appendChild(gridEl);
 
-  // Word list
+  // Word list — CIPHERTEXT ONLY
   const wordList = document.createElement('div');
   wordList.className = 'puzzle-wordlist';
-  wordList.innerHTML = '<h3>Words to Find</h3>';
+  wordList.innerHTML = '<h3>Decode & Find</h3>';
 
   for (const entry of stage.words) {
+    const ciphertext = getCiphertext(entry.word, stage);
+
     const li = document.createElement('button');
     li.className = 'word-item';
     li.dataset.word = entry.word;
 
     const placement = puzzle.placements.find(p => p.word === entry.word);
-    if (placement && placement.found) {
-      li.classList.add('found');
+    const isDecoded = state.decodedWords.has(entry.word);
+    const isFound = placement && placement.found;
+
+    if (isFound) li.classList.add('found');
+    else if (isDecoded) li.classList.add('decoded');
+
+    if (isFound) {
+      li.innerHTML = `
+        <span class="word-plain">${entry.word}</span>
+        <span class="word-cipher">${stage.cipher.toUpperCase()}</span>
+        <span class="word-status">✓</span>
+      `;
+    } else if (isDecoded) {
+      li.innerHTML = `
+        <span class="word-plain">${entry.word}</span>
+        <span class="word-cipher">${stage.cipher.toUpperCase()}</span>
+        <span class="word-status">Find it!</span>
+      `;
+    } else {
+      li.innerHTML = `
+        <span class="word-ciphertext">${ciphertext}</span>
+        <span class="word-cipher">${stage.cipher.toUpperCase()}</span>
+        <span class="word-status">🔒</span>
+      `;
     }
 
-    li.innerHTML = `
-      <span class="word-text">${entry.word}</span>
-      <span class="word-cipher">${stage.cipher.toUpperCase()}</span>
-    `;
-    li.addEventListener('click', () => showHintModal(entry, stage, container));
+    li.addEventListener('click', () => {
+      if (isFound) return; // already found, no action
+      showHintModal(entry, ciphertext, stage, container);
+    });
     wordList.appendChild(li);
   }
 
   layout.appendChild(wordList);
   container.appendChild(layout);
+}
+
+function getCiphertext(word, stage) {
+  return stage.hintKey === null
+    ? CiphersLite[stage.cipher](word)
+    : Array.isArray(stage.hintKey)
+      ? CiphersLite[stage.cipher](word, ...stage.hintKey)
+      : CiphersLite[stage.cipher](word, stage.hintKey);
 }
 
 function highlightCells() {
@@ -210,19 +239,16 @@ function handleRelease(container) {
     state.session.totalScore += pts;
     saveSession(state.session);
 
-    // Highlight found word
     for (const { r, c } of match.cells) {
       const cell = document.querySelector(`.grid-cell[data-r="${r}"][data-c="${c}"]`);
       if (cell) cell.classList.add('found');
     }
 
-    // Mark word in list
-    const wordItem = document.querySelector(`.word-item[data-word="${match.word}"]`);
-    if (wordItem) wordItem.classList.add('found');
-
-    // Update score
     const scoreEl = document.querySelector('.puzzle-score');
     if (scoreEl) scoreEl.textContent = `Score: ${state.session.totalScore}`;
+
+    // Re-render word list to show found state
+    renderPuzzle(container);
 
     // Check stage clear
     if (state.currentPuzzle.placements.every(p => p.found)) {
@@ -245,16 +271,9 @@ function clearSelection() {
   document.querySelectorAll('.grid-cell.selected').forEach(c => c.classList.remove('selected'));
 }
 
-function showHintModal(wordEntry, stage, container) {
-  // Remove existing modal
+function showHintModal(wordEntry, ciphertext, stage, container) {
   const existing = document.getElementById('modal-hint');
   if (existing) existing.remove();
-
-  const ciphertext = stage.hintKey === null
-    ? CiphersLite[stage.cipher](wordEntry.word)
-    : Array.isArray(stage.hintKey)
-      ? CiphersLite[stage.cipher](wordEntry.word, ...stage.hintKey)
-      : CiphersLite[stage.cipher](wordEntry.word, stage.hintKey);
 
   const keyHint = buildKeyHint(stage.cipher, stage.hintKey);
 
@@ -264,29 +283,60 @@ function showHintModal(wordEntry, stage, container) {
   modal.innerHTML = `
     <div class="modal-content">
       <h3>Decode the ${stage.cipher.toUpperCase()} Challenge</h3>
-      <p class="hint-ciphertext">${ciphertext}</p>
-      <p class="hint-key">${keyHint}</p>
-      <p class="hint-clue">${wordEntry.hint}</p>
+
+      <div class="hint-cipher-display">
+        <span class="hint-cipher-label">Ciphertext</span>
+        <span class="hint-ciphertext" id="hint-ct-text">${ciphertext}</span>
+        <button id="btn-copy-ct" class="btn-copy" title="Copy ciphertext">📋 Copy</button>
+      </div>
+
+      <div class="hint-cipher-info">
+        <span>Cipher: <strong>${stage.cipher.toUpperCase()}</strong></span>
+        <span>${keyHint}</span>
+      </div>
+
+      <p class="hint-clue">💡 ${wordEntry.hint}</p>
+
       <input type="text" id="hint-answer" class="hint-input" placeholder="Type the decoded word" autocomplete="off" />
+      <p class="hint-feedback hidden"></p>
+
       <div class="hint-actions">
-        <button id="btn-submit-hint" class="btn-primary">Submit</button>
+        <button id="btn-submit-hint" class="btn-primary">Decode & Find</button>
         <button id="btn-close-hint" class="btn-secondary">Cancel</button>
       </div>
-      <p class="hint-error hidden"></p>
     </div>
   `;
 
   document.body.appendChild(modal);
 
   const input = modal.querySelector('#hint-answer');
-  const error = modal.querySelector('.hint-error');
+  const feedback = modal.querySelector('.hint-feedback');
   input.focus();
 
+  // Copy button
+  modal.querySelector('#btn-copy-ct').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(ciphertext);
+      const btn = modal.querySelector('#btn-copy-ct');
+      btn.textContent = '✓ Copied';
+      setTimeout(() => { btn.innerHTML = '📋 Copy'; }, 1500);
+    } catch {
+      // Fallback: select text in input
+      input.value = ciphertext;
+      input.select();
+    }
+  });
+
+  // Submit
   modal.querySelector('#btn-submit-hint').addEventListener('click', () => {
     const answer = input.value.trim().toUpperCase();
     if (answer === wordEntry.word) {
       modal.remove();
-      // Auto-highlight the word in the grid
+
+      // Mark as decoded
+      state.decodedWords.add(wordEntry.word);
+
+      // Auto-find the word in the puzzle
       const placement = state.currentPuzzle.placements.find(p => p.word === wordEntry.word);
       if (placement && !placement.found) {
         placement.found = true;
@@ -299,28 +349,36 @@ function showHintModal(wordEntry, stage, container) {
           if (cell) cell.classList.add('found');
         }
 
-        const wordItem = document.querySelector(`.word-item[data-word="${wordEntry.word}"]`);
-        if (wordItem) wordItem.classList.add('found');
-
         const scoreEl = document.querySelector('.puzzle-score');
         if (scoreEl) scoreEl.textContent = `Score: ${state.session.totalScore}`;
+      }
 
-        if (state.currentPuzzle.placements.every(p => p.found)) {
-          if (!state.session.stagesCleared.includes(state.currentStage.id)) {
-            state.session.stagesCleared.push(state.currentStage.id);
-            saveSession(state.session);
-          }
-          setTimeout(() => {
-            alert(`${state.currentStage.name} cleared! 🎉`);
-            initIsland(container);
-          }, 500);
+      // Re-render word list
+      renderPuzzle(container);
+
+      // Check stage clear
+      if (state.currentPuzzle.placements.every(p => p.found)) {
+        if (!state.session.stagesCleared.includes(state.currentStage.id)) {
+          state.session.stagesCleared.push(state.currentStage.id);
+          saveSession(state.session);
         }
+        setTimeout(() => {
+          alert(`${state.currentStage.name} cleared! 🎉`);
+          initIsland(container);
+        }, 500);
       }
     } else {
-      error.textContent = 'Not quite — try again!';
-      error.classList.remove('hidden');
+      feedback.textContent = '✗ Not quite — try again!';
+      feedback.className = 'hint-feedback hint-error-msg';
       input.value = '';
       input.focus();
+    }
+  });
+
+  // Enter key submits
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      modal.querySelector('#btn-submit-hint').click();
     }
   });
 
@@ -329,8 +387,8 @@ function showHintModal(wordEntry, stage, container) {
 }
 
 function buildKeyHint(cipher, key) {
-  if (cipher === 'caesar')    return `Hint: Shift = ${key}`;
-  if (cipher === 'atbash')    return `Hint: No key — A↔Z mirror`;
-  if (cipher === 'vigenere')  return `Hint: Key = "${key}"`;
+  if (cipher === 'caesar')    return `Shift = ${key}`;
+  if (cipher === 'atbash')    return 'No key — A↔Z mirror';
+  if (cipher === 'vigenere')  return `Key = "${key}"`;
   return '';
 }
